@@ -37,4 +37,4 @@ count of rows in `SELECT * FROM emails`
 It happens because another transaction have been committed between this operations
 and added one email
 
-To avoid this error need to use `Snapshot isolation` or `Repeatable read`
+To avoid this error need to use `Snapshot` or `Repeatable read` isolation
