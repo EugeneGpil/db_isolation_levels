@@ -1,8 +1,10 @@
 # DB isolation levels
 
-* [Read committed](#read-committed-isolation-level)
-* [Snapshot (repeatable read)](#snapshot-repeatable-read-isolation-level)
-* [Read uncommitted](#read-uncommitted)
+* Isolation levels
+  * [Read committed](#read-committed-isolation-level)
+  * [Snapshot (repeatable read)](#snapshot-repeatable-read-isolation-level)
+  * [Read uncommitted](#read-uncommitted)
+* [Mysql notes](#mysql-notes)
 
 
 
@@ -116,3 +118,19 @@ transaction 2      |
 I can't imagine situation when read uncommitted isolation level needed.
 
 Should be avoided in most cases.
+
+
+
+## Mysql notes
+
+Default mysql isolation level is [Snapshot (repeatable read)](#snapshot-repeatable-read-isolation-level)
+
+To set isolation level for session
+```mysql
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+```
+
+To set isolation level globally
+```mysql
+SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+```
