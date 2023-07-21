@@ -4,6 +4,8 @@
   * [Read committed](#read-committed-isolation-level)
   * [Snapshot (repeatable read)](#snapshot-repeatable-read-isolation-level)
   * [Read uncommitted](#read-uncommitted)
+* [Lost update](#lost-update)
+* [Atomic updates](#atomic-updates)
 * [Mysql notes](#mysql-notes)
 
 
@@ -118,6 +120,72 @@ transaction 2      |
 I can't imagine situation when read uncommitted isolation level needed.
 
 Should be avoided in most cases.
+
+
+
+## Lost update
+
+```mysql
+
+# transaction 1
+START TRANSACTION;
+
+SELECT value FROM counter INTO @value; # @value = 1
+
+UPDATE counter SET value = @value + 1 WHERE id = 1; # set value to 2
+
+COMMIT;
+
+
+# transaction 2
+START TRANSACTION;
+
+SELECT value FROM counter INTO @value; # @value = 1
+
+#=========================================================
+# transaction 1 running
+#=========================================================
+
+UPDATE counter SET value = @value + 1 WHERE id = 1; # set value to 2 again
+
+COMMIT;
+
+```
+
+In example above both transactions will read `value = 1` and set `value` to `2`.
+
+Updating `value` by transaction 2 will be lost
+
+It may happen with any transaction isolation levels.
+
+To prevent this error [Atomic updates](#atomic-updates) should be used.
+
+
+
+
+## Atomic updates
+
+```mysql
+
+# transaction 1
+START TRANSACTION;
+
+UPDATE counter SET value = value + 1 WHERE id = 1;
+
+COMMIT;
+
+
+# transaction 2
+START TRANSACTION;
+
+# waiting for unlocking
+UPDATE counter SET value = value + 1 WHERE id = 1;
+
+COMMIT 
+
+```
+
+In example above value will be updated 2 times and no operations will be lost
 
 
 
