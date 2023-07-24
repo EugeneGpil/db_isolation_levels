@@ -1,19 +1,24 @@
 # DB isolation levels
 
-* Isolation levels
+* [Isolation levels](#isolation-levels)
   * [Read committed](#read-committed-isolation-level)
   * [Snapshot (repeatable read)](#snapshot-repeatable-read-isolation-level)
   * [Read uncommitted](#read-uncommitted)
 * [Lost update](#lost-update)
-* [Atomic updates](#atomic-updates)
+  * [Lost update](#lost-update-1)
+  * [Atomic updates](#atomic-updates)
+* [Shared and exclusive locks](#shared-and-exclusive-locks)
+  * [Shared lock](#shared-lock)
+  * [Exclusive lock](#exclusive-lock)
 * [Mysql notes](#mysql-notes)
 
 
 
+## Isolation levels
 
-## Read committed isolation level
+### Read committed isolation level
 
-### Explanation
+#### Explanation
 ```
 
 transaction 1            commited
@@ -26,7 +31,7 @@ transaction 2            |
 
 Transaction 2 can read changes, that have been committed by transaction 1
 
-### Example
+#### Example
 
 ```mysql
 
@@ -59,9 +64,9 @@ To avoid this error use next isolation level
 
 
 
-## Snapshot (repeatable read) isolation level
+### Snapshot (repeatable read) isolation level
 
-### Explanation
+#### Explanation
 ```
 
 transaction 1            commited
@@ -75,7 +80,7 @@ transaction 2 made a snapshot of database and don't see any changes
 
 ```
 
-### Example
+#### Example
 
 ```mysql
 
@@ -99,9 +104,9 @@ This transaction can't see another transaction's changes
 
 
 
-## Read uncommitted
+### Read uncommitted
 
-### Explanation
+#### Explanation
 
 ```
                    one of many operations in transaction 1
@@ -122,8 +127,9 @@ I can't imagine situation when read uncommitted isolation level needed.
 Should be avoided in most cases.
 
 
-
 ## Lost update
+
+### Lost update
 
 ```mysql
 
@@ -163,14 +169,16 @@ To prevent this error [Atomic updates](#atomic-updates) should be used.
 
 
 
-## Atomic updates
+### Atomic updates
 
 ```mysql
 
 # transaction 1
 START TRANSACTION;
 
+# set exclusive lock
 UPDATE counter SET value = value + 1 WHERE id = 1;
+# release exclusive lock
 
 COMMIT;
 
@@ -185,11 +193,45 @@ COMMIT
 
 ```
 
-In example above value will be updated 2 times and no operations will be lost
+In example above value will be updated 2 times and no operations will be lost.
+
+In this example in case of using [repeatable-read](#snapshot-repeatable-read-isolation-level) isolation level
+changes made by transaction 1 will be read by transaction 2 anyway.
+
+In this example [exclusive lock](#exclusive-lock) is used to prevent operations lost.
 
 
 
-## Mysql notes
+### Shared and exclusive locks
+
+#### Shared lock
+
+Shared locks allow multiple transactions to read the same data simultaneously,
+but prevents modification until all shared locks have been released.
+
+Shared locks are also called `read locks`, and are used for maintaining read integrity.
+
+#### Example
+
+```mysql
+-- TODO
+```
+
+#### Exclusive lock
+
+Exclusive locks allow only one transaction access to read or modify data at a given time.
+No other transaction can read or modify the data until the current transaction releases its exclusive lock.
+Exclusive locks are also known as `write locks`.
+
+#### Example
+
+```mysql
+-- TODO
+```
+
+
+
+### Mysql notes
 
 Default mysql isolation level is [Snapshot (repeatable read)](#snapshot-repeatable-read-isolation-level)
 

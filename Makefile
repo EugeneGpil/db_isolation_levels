@@ -3,3 +3,6 @@ start:
 
 stop:
 	docker compose stop
+
+exec:
+	docker compose exec mysql bash
