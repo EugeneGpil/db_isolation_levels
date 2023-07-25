@@ -7,6 +7,7 @@
 * [Lost update](#lost-update)
   * [Lost update](#lost-update-1)
   * [Atomic updates](#atomic-updates)
+  * [Explicit lock](#explicit-lock)
 * [Shared and exclusive locks](#shared-and-exclusive-locks)
   * [Shared lock](#shared-lock)
   * [Exclusive lock](#exclusive-lock)
@@ -18,7 +19,6 @@
 
 ### Read committed isolation level
 
-#### Explanation
 ```
 
 transaction 1            commited
@@ -30,8 +30,6 @@ transaction 2            |
 ```
 
 Transaction 2 can read changes, that have been committed by transaction 1
-
-#### Example
 
 ```mysql
 
@@ -66,7 +64,6 @@ To avoid this error use next isolation level
 
 ### Snapshot (repeatable read) isolation level
 
-#### Explanation
 ```
 
 transaction 1            commited
@@ -79,8 +76,6 @@ transaction 2
 transaction 2 made a snapshot of database and don't see any changes
 
 ```
-
-#### Example
 
 ```mysql
 
@@ -105,8 +100,6 @@ This transaction can't see another transaction's changes
 
 
 ### Read uncommitted
-
-#### Explanation
 
 ```
                    one of many operations in transaction 1
@@ -178,9 +171,9 @@ START TRANSACTION;
 
 # set exclusive lock
 UPDATE counter SET value = value + 1 WHERE id = 1;
-# release exclusive lock
 
 COMMIT;
+# release exclusive lock
 
 
 # transaction 2
@@ -202,6 +195,37 @@ In this example [exclusive lock](#exclusive-lock) is used to prevent operations 
 
 
 
+### Explicit lock
+
+```mysql
+
+# transaction 1
+START TRANSACTION;
+
+# set exclusive lock
+SELECT value FROM counter WHERE id = 1 INTO @value FOR UPDATE;
+
+UPDATE counter SET value = @value + 1 WHERE id = 1;
+
+COMMIT;
+# release exclusive lock
+
+
+# transaction 2
+START TRANSACTION;
+
+# waiting for unlocking
+SELECT value FROM counter WHERE id = 1 INTO @value FOR UPDATE;
+
+UPDATE counter SET value = @value + 1 WHERE id = 1;
+
+COMMIT;
+
+```
+
+It's just like [atomic update](#atomic-updates), but more manually.
+
+
 ### Shared and exclusive locks
 
 #### Shared lock
@@ -211,10 +235,8 @@ but prevents modification until all shared locks have been released.
 
 Shared locks are also called `read locks`, and are used for maintaining read integrity.
 
-#### Example
-
 ```mysql
--- TODO
+-- TODO:Example
 ```
 
 #### Exclusive lock
@@ -223,10 +245,8 @@ Exclusive locks allow only one transaction access to read or modify data at a gi
 No other transaction can read or modify the data until the current transaction releases its exclusive lock.
 Exclusive locks are also known as `write locks`.
 
-#### Example
-
 ```mysql
--- TODO
+-- TODO:Example
 ```
 
 
