@@ -8,6 +8,7 @@
   * [Lost update](#lost-update-1)
   * [Atomic updates](#atomic-updates)
   * [Explicit lock](#explicit-lock)
+  * [Lost update detection](#lost-update-detection)
 * [Shared and exclusive locks](#shared-and-exclusive-locks)
   * [Shared lock](#shared-lock)
   * [Exclusive lock](#exclusive-lock)
@@ -224,6 +225,41 @@ COMMIT;
 ```
 
 It's just like [atomic update](#atomic-updates), but more manually.
+
+
+
+#### Lost update detection
+
+```mysql
+
+# transaction 1
+START TRANSACTION;
+
+SELECT value FROM counter INTO @value; # @value = 1
+
+UPDATE counter SET value = @value + 1 WHERE id = 1; # set value to 2
+
+COMMIT;
+
+
+# transaction 2
+START TRANSACTION;
+
+SELECT value FROM counter INTO @value; # @value = 1
+
+#=========================================================
+# transaction 1 running
+#=========================================================
+
+UPDATE counter SET value = @value + 1 WHERE id = 1; # set value to 2 again
+
+COMMIT; -- <== ROLLBACK; # Rolled back by transaction manager
+
+```
+
+For lost update detection need to use transaction manager.
+Transaction manager determines that current transaction will lead to lost update and rolling back this transaction.
+
 
 
 ### Shared and exclusive locks
