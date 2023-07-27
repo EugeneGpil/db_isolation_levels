@@ -282,7 +282,15 @@ No other transaction can read or modify the data until the current transaction r
 Exclusive locks are also known as `write locks`.
 
 ```mysql
--- TODO:Example
+
+START TRANSACTION;
+
+SELECT count FROM store WHERE product = 'apple' INTO @value FOR UPDATE;
+
+UPDATE store SET count = @value - 10 WHERE product = 'apple';
+
+COMMIT;
+
 ```
 
 
