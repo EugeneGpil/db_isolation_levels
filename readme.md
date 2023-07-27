@@ -285,7 +285,7 @@ Exclusive locks are also known as `write locks`.
 
 START TRANSACTION;
 
-SELECT count FROM store WHERE product = 'apple' INTO @value FOR UPDATE;
+SELECT `count` FROM store WHERE product = 'apple' INTO @value FOR UPDATE;
 
 UPDATE store SET count = @value - 10 WHERE product = 'apple';
 
