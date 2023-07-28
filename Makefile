@@ -6,3 +6,6 @@ stop:
 
 exec:
 	docker compose exec mysql bash
+
+#mysql:
+#	docker compose run mysql mysql -utest -psecret

@@ -98,6 +98,34 @@ In example above `SELECT COUNT(*) FROM emails` and `SELECT * FROM emails` will r
 
 This transaction can't see another transaction's changes
 
+Note that [Atomic updates](#atomic-updates) and [Explicit lock updates](#explicit-lock)
+made by another transaction will be read anyway
+
+```mysql
+
+# transaction 1
+START TRANSACTION;
+
+SELECT amount from orders where id = 1;
+# 1000
+
+#============================================
+# transaction 2 running
+#============================================
+
+SELECT amount from orders where id = 1;
+# 1500
+
+COMMIT;
+
+
+# transaction 2
+# START TRANSACTION; // One operation is like one transaction
+UPDATE orders SET amount = amount + 500 WHERE id = 1;
+# COMMIT;
+
+```
+
 
 
 ### Read uncommitted
@@ -285,14 +313,36 @@ Exclusive locks are also known as `write locks`.
 
 START TRANSACTION;
 
+-- lock --------------------------------------------------------------------
 SELECT `count` FROM store WHERE product = 'apple' INTO @value FOR UPDATE;
 
 UPDATE store SET count = @value - 10 WHERE product = 'apple';
 
 COMMIT;
+-- unlock ------------------------------------------------------------------
 
 ```
 
+Exclusive lock starts not only with `FOR UPDATE` keyword, but with any `UPDATE` operation 
+
+```mysql
+
+START TRANSACTION;
+
+-- lock -----------------------------------------
+UPDATE orders SET amount = 500 WHERE id = 1;
+
+-- some other operations
+-- (may take really long time)
+
+COMMIT;
+-- unlock ---------------------------------------
+
+```
+
+Need to be careful to prevent long locking because other operations will pile up in a queue.
+
+The best way is to make `UPDATE` just before `COMMIT`
 
 
 ### Mysql notes
