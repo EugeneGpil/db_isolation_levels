@@ -39,10 +39,13 @@ SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
 START TRANSACTION ;
 
 SELECT COUNT(*) FROM emails WHERE user_id = 1;
+# 200
 
 #   INSERT ... INTO emails;  // Another transaction
+#   200 -> 201
 
 SELECT * FROM emails WHERE user_id = 1;
+# 201
 
 COMMIT;
 
@@ -54,7 +57,7 @@ count of rows in `SELECT * FROM emails`
 It happens because another transaction have been committed between these operations
 and added one email
 
-To avoid this error use next isolation level
+To avoid this error use [Repeatable read](#snapshot-repeatable-read-isolation-level)
 
 
 
@@ -78,6 +81,8 @@ transaction 2 made a snapshot of database and don't see any changes
 
 ```
 
+#### Example with `INSERT`
+
 ```mysql
 
 SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
@@ -85,10 +90,32 @@ SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 START TRANSACTION ;
 
 SELECT COUNT(*) FROM emails WHERE user_id = 1;
+# 200
 
 #   INSERT ... INTO emails;  // Another transaction
+#   200 -> 201
 
 SELECT * FROM emails WHERE user_id = 1;
+# 200 <-- can't see another transaction's changes
+
+COMMIT;
+
+```
+
+#### Example with `UPDATE`
+
+```mysql
+
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+SELECT amount from orders where id = 1;
+# 1000
+
+#   UPDATE orders SET amount = 2000 where id = 1; // another transaction
+#   1000 -> 2000
+
+SELECT amount from orders where id = 1;
+# 1000 <-- can't see another transaction's changes
 
 COMMIT;
 
@@ -103,26 +130,20 @@ made by another transaction will be read anyway
 
 ```mysql
 
-# transaction 1
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
 START TRANSACTION;
 
 SELECT amount from orders where id = 1;
 # 1000
 
-#============================================
-# transaction 2 running
-#============================================
+#   UPDATE orders SET amount = amount + 500 WHERE id = 1; // another transaction (atomic update)
+#   1000 --> 1500
 
 SELECT amount from orders where id = 1;
-# 1500
+# 1500 <-- but this time changes made by another transaction are visible in this transaction
 
 COMMIT;
-
-
-# transaction 2
-# START TRANSACTION; // One operation is like one transaction
-UPDATE orders SET amount = amount + 500 WHERE id = 1;
-# COMMIT;
 
 ```
 
